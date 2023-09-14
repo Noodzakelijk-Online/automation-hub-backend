@@ -1,0 +1,42 @@
+version: '3.5'
+services:
+  backend:
+    image: jacksonbarreto/automation-hub-backend:latest
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "${WEB_SERVER_PORT}:${WEB_SERVER_PORT}"
+    networks:
+      - backend-network
+      - service-hub
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    env_file:
+      - .env
+    hostname: ${DB_HOST}
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      PGPORT: ${DB_PORT}
+      DB_HOST: ${DB_HOST}
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+      - ./internal/infra/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    name: backend-network
+    driver: bridge
+  service-hub:
+    name: service-hub
+    external: true
