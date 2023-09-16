@@ -16,7 +16,7 @@ func Initialize() error {
 	}
 
 	// run server
-	port := config.Config.ServerPort
+	port := config.AppConfig.ServerPort
 	err = router.Run(port)
 	if err != nil {
 		return err

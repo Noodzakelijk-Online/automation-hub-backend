@@ -21,8 +21,8 @@ func NewPostgresDatabase(user, password, dbName, dbHost string, dbPort int) (*go
 }
 
 func GetDefaultDB() (*gorm.DB, error) {
-	db, err := NewPostgresDatabase(config.Config.DbUser, config.Config.DbPassword,
-		config.Config.DbName, config.Config.DbHost, config.Config.DbPort)
+	db, err := NewPostgresDatabase(config.AppConfig.DbUser, config.AppConfig.DbPassword,
+		config.AppConfig.DbName, config.AppConfig.DbHost, config.AppConfig.DbPort)
 	if err != nil {
 		return nil, err
 	}
