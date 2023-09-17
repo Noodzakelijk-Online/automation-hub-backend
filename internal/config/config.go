@@ -62,7 +62,7 @@ func Init() {
 		DbPassword:      getEnvString(dbPassword, "postgres"),
 		ImageMaxSize:    getEnvInt64(imageMaxSizeInMb, 5*1024*1024),
 		ImageExtensions: getImageExtensions(),
-		ImageSaveDir:    getEnvString(imageSaveDir, "/images"),
+		ImageSaveDir:    getEnvString(imageSaveDir, "images"),
 	}
 	ensureImageDirExists()
 }
