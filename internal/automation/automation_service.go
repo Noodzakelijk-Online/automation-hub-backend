@@ -229,6 +229,7 @@ func (s *service) deleteImage(imageName string) error {
 }
 
 func contains(slice []string, str string) bool {
+	str = strings.ToLower(str)
 	for _, v := range slice {
 		if v == str {
 			return true
