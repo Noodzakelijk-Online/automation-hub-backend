@@ -28,7 +28,7 @@ func initializeRoutes(router *gin.Engine) error {
 func initializeAutomationsRoutes(apiVersion *gin.RouterGroup, autoHandler *automation.Handler) error {
 	automations := apiVersion.Group("/automation")
 	{
-		automations.GET("/:id1/swap/:id2", autoHandler.SwapPosition)
+		automations.GET("/swap/:id1/:id2", autoHandler.SwapPosition)
 		automations.GET("/", autoHandler.GetAll)
 		automations.GET("/:id", autoHandler.GetByID)
 		automations.POST("/", autoHandler.Create)
