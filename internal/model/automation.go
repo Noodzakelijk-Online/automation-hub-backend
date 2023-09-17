@@ -27,9 +27,6 @@ func (a *Automation) Validate() error {
 	if len(a.Name) > 50 {
 		return fmt.Errorf("name is too long, maximum length is 50 characters")
 	}
-	if a.Image == "" {
-		return fmt.Errorf("image is required")
-	}
 	if len(a.Image) > 255 {
 		return fmt.Errorf("image name is too long, maximum length is 255 characters")
 	}
