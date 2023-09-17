@@ -52,7 +52,7 @@ func Init() {
 
 	AppConfig = Configuration{
 		ConfigDir:       getEnvString(configDir, "/app/sites-enabled"),
-		BaseUrl:         getEnvString(baseUrl, "/config-manager"),
+		BaseUrl:         getEnvString(baseUrl, "/api"),
 		ServerPort:      ":" + strconv.Itoa(servNumPort),
 		NginxContainer:  getEnvString(nginxContainer, "gateway"),
 		DbHost:          getEnvString(dbHost, "postgres-automation"),
