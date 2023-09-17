@@ -26,7 +26,7 @@ func initializeRoutes(router *gin.Engine) error {
 }
 
 func initializeAutomationsRoutes(apiVersion *gin.RouterGroup, autoHandler *automation.Handler) error {
-	automations := apiVersion.Group("/automations")
+	automations := apiVersion.Group("/automation")
 	{
 		automations.GET("/", autoHandler.GetAll)
 		automations.GET("/:id", autoHandler.GetByID)
