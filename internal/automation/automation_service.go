@@ -191,7 +191,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 
 	_, _, err = image.Decode(src)
 	if err != nil {
-		return "", fmt.Errorf("corrupted image: %v", err)
+		//return "", fmt.Errorf("corrupted image: %v", err)
 	}
 
 	_, err = src.Seek(0, 0)
