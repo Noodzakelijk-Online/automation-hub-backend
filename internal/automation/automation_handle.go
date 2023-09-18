@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -34,9 +35,15 @@ func (h *Handler) ImageHandler(c *gin.Context) {
 // @Summary Create a new automation
 // @Description Create a new automation with the input data
 // @Tags Automations
-// @Accept  json
+// @Accept  multipart/form-data
 // @Produce  json
-// @Param automation body model.Automation true "Automation data"
+// @Param name formData string true "Automation Name"
+// @Param host formData string true "Automation Host"
+// @Param port formData int true "Automation Port"
+// @Param position formData int true "Automation Position"
+// @Param removeImage formData bool true "Remove Image"
+// @Param id formData string false "Automation ID"
+// @Param imageFile formData file false "Image File"
 // @Success 201 {object} model.Automation "Successfully created automation"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 500 {object} map[string]string "Internal Server Error"
@@ -44,21 +51,16 @@ func (h *Handler) ImageHandler(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var automation model.Automation
 
+	automation.Name = c.PostForm("name")
+	automation.Host = c.PostForm("host")
+	port, _ := strconv.Atoi(c.PostForm("port"))
+	automation.Port = port
+	removeImage, _ := strconv.ParseBool(c.PostForm("removeImage"))
+	automation.RemoveImage = removeImage
+
 	file, _ := c.FormFile("imageFile")
 	if file != nil {
 		automation.ImageFile = file
-	}
-
-	body, err := io.ReadAll(c.Request.Body)
-	defer c.Request.Body.Close()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
-		return
-	}
-
-	if err := model.JSON.Unmarshal(body, &automation); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
 
 	newAutomation, err := h.service.Create(&automation)
