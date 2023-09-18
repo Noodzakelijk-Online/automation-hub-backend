@@ -49,6 +49,7 @@ func Init() {
 	if err := validatePort(dbNumPort); err != nil {
 		panic(err)
 	}
+	imageSizeInMb := getEnvInt64(imageMaxSizeInMb, 5) * 1024 * 1024
 
 	AppConfig = Configuration{
 		ConfigDir:       getEnvString(configDir, "/app/sites-enabled"),
@@ -60,7 +61,7 @@ func Init() {
 		DbName:          getEnvString(dbName, "automation"),
 		DbUser:          getEnvString(dbUser, "postgres"),
 		DbPassword:      getEnvString(dbPassword, "postgres"),
-		ImageMaxSize:    getEnvInt64(imageMaxSizeInMb, 5*1024*1024),
+		ImageMaxSize:    imageSizeInMb,
 		ImageExtensions: getImageExtensions(),
 		ImageSaveDir:    getEnvString(imageSaveDir, "images"),
 	}

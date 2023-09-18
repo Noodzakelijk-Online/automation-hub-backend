@@ -149,7 +149,7 @@ func (s *service) SwapOrder(id1 uuid.UUID, id2 uuid.UUID) error {
 
 func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 	if file.Size > config.AppConfig.ImageMaxSize {
-		return "", fmt.Errorf("image is too large. Max size is %d Mb", config.AppConfig.ImageMaxSize)
+		return "", fmt.Errorf("image is too large (%d). Max size is %d Mb", file.Size, config.AppConfig.ImageMaxSize)
 	}
 
 	ext := filepath.Ext(file.Filename)
