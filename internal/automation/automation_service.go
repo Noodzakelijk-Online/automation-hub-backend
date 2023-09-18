@@ -47,7 +47,6 @@ func (s *service) Create(automation *model.Automation) (*model.Automation, error
 	automation.ID = uuid.UUID{} // reset ID
 
 	if automation.ImageFile != nil {
-		fmt.Printf("Image file: %v\n", automation.ImageFile)
 		newFileName, err := s.processImageFile(automation.ImageFile)
 		if err != nil {
 			return nil, err
@@ -154,6 +153,8 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 	}
 
 	ext := filepath.Ext(file.Filename)
+	fmt.Printf("Filename: %s, Extracted Extension: %s\n", file.Filename, ext)
+
 	if !contains(config.AppConfig.ImageExtensions, ext) {
 		return "", fmt.Errorf("invalid image extension. Allowed extensions are: %v", config.AppConfig.ImageExtensions)
 	}
