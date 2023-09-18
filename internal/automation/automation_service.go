@@ -47,6 +47,27 @@ func (s *service) Create(automation *model.Automation) (*model.Automation, error
 	automation.ID = uuid.UUID{} // reset ID
 
 	if automation.ImageFile != nil {
+		file := automation.ImageFile
+		fmt.Printf("Received file size: %d bytes\n", file.Size)
+		fmt.Printf("Received file name: %s\n", file.Filename)
+		tempFileName := "temp_test_file" + filepath.Ext(file.Filename)
+		dst, err := os.Create(config.AppConfig.ImageSaveDir + "/" + tempFileName)
+		if err != nil {
+			fmt.Printf("Error creating file: %v\n", err)
+		}
+		defer dst.Close()
+
+		src, err := file.Open()
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+		}
+		defer src.Close()
+
+		_, err = io.Copy(dst, src)
+		if err != nil {
+			fmt.Printf("Error copying file: %v\n", err)
+		}
+
 		newFileName, err := s.processImageFile(automation.ImageFile)
 		if err != nil {
 			return nil, err
