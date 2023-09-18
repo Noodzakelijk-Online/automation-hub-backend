@@ -51,6 +51,9 @@ func (s *service) Create(automation *model.Automation) (*model.Automation, error
 		fmt.Printf("Received file size: %d bytes\n", file.Size)
 		fmt.Printf("Received file name: %s\n", file.Filename)
 		tempFileName := "temp_test_file" + filepath.Ext(file.Filename)
+		fullPath := config.AppConfig.ImageSaveDir + "/" + tempFileName
+		fmt.Printf("Attempting to save file to: %s\n", fullPath)
+
 		dst, err := os.Create(config.AppConfig.ImageSaveDir + "/" + tempFileName)
 		if err != nil {
 			fmt.Printf("Error creating file: %v\n", err)
@@ -223,6 +226,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 	newFileName := uuid.New().String() + ext
 	dst, err := os.Create(config.AppConfig.ImageSaveDir + "/" + newFileName)
 	if err != nil {
+		fmt.Printf("Failed to create file %s: %v", dst.Name(), err)
 		return "", err
 	}
 	defer func(dst *os.File) {
@@ -231,6 +235,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 			fmt.Printf("Failed to close file %s: %v", dst.Name(), err)
 		}
 	}(dst)
+	fmt.Printf("Buffer content: %x\n", buffer[:100]) // Print first 100 bytes
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
