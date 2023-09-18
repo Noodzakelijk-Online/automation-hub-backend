@@ -47,6 +47,7 @@ func (s *service) Create(automation *model.Automation) (*model.Automation, error
 	automation.ID = uuid.UUID{} // reset ID
 
 	if automation.ImageFile != nil {
+		fmt.Printf("Image file: %v\n", automation.ImageFile)
 		newFileName, err := s.processImageFile(automation.ImageFile)
 		if err != nil {
 			return nil, err
