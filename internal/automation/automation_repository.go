@@ -3,6 +3,7 @@ package automation
 import (
 	"automation-hub-backend/internal/infra"
 	"automation-hub-backend/internal/model"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -103,6 +104,9 @@ func (r *GormUserRepository) MaxPosition() (int, error) {
 	var automation model.Automation
 	err := r.DB.Order("position desc").First(&automation).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, nil
+		}
 		return 0, err
 	}
 	return automation.Position, nil
