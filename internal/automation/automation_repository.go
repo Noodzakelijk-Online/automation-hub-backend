@@ -2,7 +2,7 @@ package automation
 
 import (
 	"automation-hub-backend/internal/infra"
-	"automation-hub-backend/internal/model"
+	"automation-hub-backend/internal/models"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -10,11 +10,11 @@ import (
 )
 
 type Repository interface {
-	FindByID(id uuid.UUID) (*model.Automation, error)
-	Create(automation *model.Automation) (*model.Automation, error)
-	Update(automation *model.Automation) (*model.Automation, error)
+	FindByID(id uuid.UUID) (*models.Automation, error)
+	Create(automation *models.Automation) (*models.Automation, error)
+	Update(automation *models.Automation) (*models.Automation, error)
 	Delete(id uuid.UUID) error
-	FindAll() ([]*model.Automation, error)
+	FindAll() ([]*models.Automation, error)
 	MaxPosition() (int, error)
 	Transaction(txFunc func(tx *gorm.DB) error) (err error)
 }
@@ -37,8 +37,8 @@ func DefaultRepository() Repository {
 	return NewGormUserRepository(db)
 }
 
-func (r *GormUserRepository) FindByID(id uuid.UUID) (*model.Automation, error) {
-	var automation model.Automation
+func (r *GormUserRepository) FindByID(id uuid.UUID) (*models.Automation, error) {
+	var automation models.Automation
 	err := r.DB.First(&automation, "id = ?", id).Error
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *GormUserRepository) FindByID(id uuid.UUID) (*model.Automation, error) {
 	return &automation, nil
 }
 
-func (r *GormUserRepository) Create(automation *model.Automation) (*model.Automation, error) {
+func (r *GormUserRepository) Create(automation *models.Automation) (*models.Automation, error) {
 	err := r.DB.Create(automation).Error
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (r *GormUserRepository) Create(automation *model.Automation) (*model.Automa
 	return automation, nil
 }
 
-func (r *GormUserRepository) Update(automation *model.Automation) (*model.Automation, error) {
+func (r *GormUserRepository) Update(automation *models.Automation) (*models.Automation, error) {
 	err := r.DB.Save(automation).Error
 	if err != nil {
 		return nil, err
@@ -63,15 +63,15 @@ func (r *GormUserRepository) Update(automation *model.Automation) (*model.Automa
 }
 
 func (r *GormUserRepository) Delete(id uuid.UUID) error {
-	err := r.DB.Delete(&model.Automation{}, id).Error
+	err := r.DB.Delete(&models.Automation{}, id).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *GormUserRepository) FindAll() ([]*model.Automation, error) {
-	var automations []*model.Automation
+func (r *GormUserRepository) FindAll() ([]*models.Automation, error) {
+	var automations []*models.Automation
 	err := r.DB.Find(&automations).Error
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r *GormUserRepository) Transaction(txFunc func(tx *gorm.DB) error) (err er
 }
 
 func (r *GormUserRepository) MaxPosition() (int, error) {
-	var automation model.Automation
+	var automation models.Automation
 	err := r.DB.Order("position desc").First(&automation).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

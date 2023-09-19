@@ -2,7 +2,7 @@ package infra
 
 import (
 	"automation-hub-backend/internal/config"
-	"automation-hub-backend/internal/model"
+	"automation-hub-backend/internal/models"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -35,7 +35,7 @@ func GetDefaultDB() (*gorm.DB, error) {
 }
 
 func RunMigrations(db *gorm.DB) error {
-	if err := db.AutoMigrate(&model.Automation{}); err != nil {
+	if err := db.AutoMigrate(&models.Automation{}); err != nil {
 		return err
 	}
 	return nil

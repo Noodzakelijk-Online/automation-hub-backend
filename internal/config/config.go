@@ -38,8 +38,8 @@ type Configuration struct {
 	ImageMaxSize    int64
 	ImageExtensions []string
 	ImageSaveDir    string
-	KafkaBrokers    []string
-	KafkaTopic      string
+	Brokers         []string
+	Topic           string
 }
 
 var AppConfig Configuration
@@ -69,8 +69,8 @@ func Init() {
 		ImageMaxSize:    imageSizeInMb,
 		ImageExtensions: imageExtensionsList,
 		ImageSaveDir:    getEnvString(imageSaveDir, "images"),
-		KafkaBrokers:    kafkaBrokersList,
-		KafkaTopic:      getEnvString(kafkaTopic, "automation-topic"),
+		Brokers:         kafkaBrokersList,
+		Topic:           getEnvString(kafkaTopic, "automation-events"),
 	}
 	ensureImageDirExists()
 }

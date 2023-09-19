@@ -2,7 +2,7 @@ package automation
 
 import (
 	"automation-hub-backend/internal/config"
-	"automation-hub-backend/internal/model"
+	"automation-hub-backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
@@ -44,12 +44,12 @@ func (h *Handler) ImageHandler(c *gin.Context) {
 // @Param removeImage formData bool true "Remove Image"
 // @Param id formData string false "Automation ID"
 // @Param imageFile formData file false "Image File"
-// @Success 201 {object} model.Automation "Successfully created automation"
+// @Success 201 {object} models.Automation "Successfully created automation"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /automations [post]
 func (h *Handler) Create(c *gin.Context) {
-	var automation model.Automation
+	var automation models.Automation
 
 	automation.Name = c.PostForm("name")
 	automation.Host = c.PostForm("host")
@@ -78,7 +78,7 @@ func (h *Handler) Create(c *gin.Context) {
 // @Tags Automations
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} model.Automation "Successfully retrieved automations"
+// @Success 200 {array} models.Automation "Successfully retrieved automations"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /automations [get]
 func (h *Handler) GetAll(c *gin.Context) {
@@ -98,7 +98,7 @@ func (h *Handler) GetAll(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Automation ID"
-// @Success 200 {object} model.Automation "Successfully retrieved automation"
+// @Success 200 {object} models.Automation "Successfully retrieved automation"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 404 {object} map[string]string "Not Found"
 // @Failure 500 {object} map[string]string "Internal Server Error"
@@ -198,14 +198,14 @@ func (h *Handler) SwapPosition(c *gin.Context) {
 // @Tags Automations
 // @Accept  json
 // @Produce  json
-// @Param automation body model.Automation true "Automation data"
-// @Success 200 {object} model.Automation "Successfully updated automation"
+// @Param automation body models.Automation true "Automation data"
+// @Success 200 {object} models.Automation "Successfully updated automation"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 404 {object} map[string]string "Not Found"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /automations [patch]
 func (h *Handler) Update(c *gin.Context) {
-	var automation model.Automation
+	var automation models.Automation
 
 	body, err := io.ReadAll(c.Request.Body)
 	defer c.Request.Body.Close()
@@ -214,7 +214,7 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := model.JSON.Unmarshal(body, &automation); err != nil {
+	if err := models.JSON.Unmarshal(body, &automation); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

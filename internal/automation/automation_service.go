@@ -2,12 +2,14 @@ package automation
 
 import (
 	"automation-hub-backend/internal/config"
-	"automation-hub-backend/internal/model"
+	"automation-hub-backend/internal/events"
+	"automation-hub-backend/internal/models"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"image"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -16,34 +18,37 @@ import (
 )
 
 type Service interface {
-	FindByID(id uuid.UUID) (*model.Automation, error)
-	Create(automation *model.Automation) (*model.Automation, error)
-	Update(automation *model.Automation) (*model.Automation, error)
+	FindByID(id uuid.UUID) (*models.Automation, error)
+	Create(automation *models.Automation) (*models.Automation, error)
+	Update(automation *models.Automation) (*models.Automation, error)
 	Delete(id uuid.UUID) error
-	FindAll() ([]*model.Automation, error)
+	FindAll() ([]*models.Automation, error)
 	SwapOrder(id1 uuid.UUID, id2 uuid.UUID) error
 }
 
 type service struct {
-	repo Repository
+	repo      Repository
+	publisher events.Publisher
 }
 
-func NewService(repo Repository) Service {
+func NewService(repo Repository, publisher events.Publisher) Service {
 	return &service{
-		repo: repo,
+		repo:      repo,
+		publisher: publisher,
 	}
 }
 
 func DefaultService() Service {
 	repo := DefaultRepository()
-	return NewService(repo)
+	pub := events.DefaultPublisher()
+	return NewService(repo, *pub)
 }
 
-func (s *service) FindByID(id uuid.UUID) (*model.Automation, error) {
+func (s *service) FindByID(id uuid.UUID) (*models.Automation, error) {
 	return s.repo.FindByID(id)
 }
 
-func (s *service) Create(automation *model.Automation) (*model.Automation, error) {
+func (s *service) Create(automation *models.Automation) (*models.Automation, error) {
 	automation.ID = uuid.UUID{} // reset ID
 
 	if automation.ImageFile != nil {
@@ -88,10 +93,23 @@ func (s *service) Create(automation *model.Automation) (*model.Automation, error
 	}
 	automation.Position = maxPosition + 1
 
-	return s.repo.Create(automation)
+	automationCreated, err := s.repo.Create(automation)
+	if err != nil {
+		return nil, err
+	}
+	event := &events.AutomationEvent{
+		Type:       events.CreateEvent,
+		Automation: automationCreated,
+	}
+	err = s.publisher.Publish(event)
+	if err != nil {
+		log.Printf("Failed to publish create event to Kafka: %v", err)
+		return nil, err
+	}
+	return automationCreated, nil
 }
 
-func (s *service) Update(automation *model.Automation) (*model.Automation, error) {
+func (s *service) Update(automation *models.Automation) (*models.Automation, error) {
 	currentAutomation, err := s.repo.FindByID(automation.ID)
 	if err != nil {
 		return nil, err
@@ -121,14 +139,48 @@ func (s *service) Update(automation *model.Automation) (*model.Automation, error
 		return nil, err
 	}
 
-	return s.repo.Update(automation)
+	automationUpdated, err := s.repo.Update(automation)
+
+	event := &events.AutomationEvent{
+		Type:       events.UpdateEvent,
+		Automation: automationUpdated,
+	}
+
+	err = s.publisher.Publish(event)
+	if err != nil {
+		log.Printf("Failed to publish update event to Kafka: %v", err)
+		return nil, err
+	}
+
+	return automationUpdated, nil
 }
 
 func (s *service) Delete(id uuid.UUID) error {
-	return s.repo.Delete(id)
+	automation, err := s.repo.FindByID(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	event := &events.AutomationEvent{
+		Type:       events.DeleteEvent,
+		Automation: automation,
+	}
+
+	err = s.publisher.Publish(event)
+	if err != nil {
+		log.Printf("Failed to publish delete event to Kafka: %v", err)
+		return err
+	}
+
+	return nil
 }
 
-func (s *service) FindAll() ([]*model.Automation, error) {
+func (s *service) FindAll() ([]*models.Automation, error) {
 	return s.repo.FindAll()
 }
 
