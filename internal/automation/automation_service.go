@@ -54,30 +54,6 @@ func (s *service) Create(automation *models.Automation) (*models.Automation, err
 	automation.ID = uuid.UUID{} // reset ID
 
 	if automation.ImageFile != nil {
-		file := automation.ImageFile
-		fmt.Printf("Received file size: %d bytes\n", file.Size)
-		fmt.Printf("Received file name: %s\n", file.Filename)
-		tempFileName := "temp_test_file" + filepath.Ext(file.Filename)
-		fullPath := config.AppConfig.ImageSaveDir + "/" + tempFileName
-		fmt.Printf("Attempting to save file to: %s\n", fullPath)
-
-		dst, err := os.Create(config.AppConfig.ImageSaveDir + "/" + tempFileName)
-		if err != nil {
-			fmt.Printf("Error creating file: %v\n", err)
-		}
-		defer dst.Close()
-
-		src, err := file.Open()
-		if err != nil {
-			fmt.Printf("Error opening file: %v\n", err)
-		}
-		defer src.Close()
-
-		_, err = io.Copy(dst, src)
-		if err != nil {
-			fmt.Printf("Error copying file: %v\n", err)
-		}
-
 		newFileName, err := s.processImageFile(automation.ImageFile)
 		if err != nil {
 			return nil, err
@@ -253,6 +229,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 
 	src, err := file.Open()
 	if err != nil {
+		log.Printf("Failed to open the file: %v", err)
 		return "", err
 	}
 	defer func(src multipart.File) {
@@ -305,11 +282,12 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 	}(dst)
 	fmt.Printf("Buffer content: %x\n", buffer[:100]) // Print first 100 bytes
 
-	_, err = io.Copy(dst, src)
+	n, err := io.Copy(dst, src)
 	if err != nil {
+		log.Printf("Failed to copy file: %v", err)
 		return "", err
 	}
-
+	log.Printf("Copied %d bytes to %s", n, dst.Name())
 	return newFileName, nil
 }
 
