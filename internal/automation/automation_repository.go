@@ -16,6 +16,7 @@ type Repository interface {
 	Delete(id uuid.UUID) error
 	FindAll() ([]*models.Automation, error)
 	MaxPosition() (int, error)
+	GetByURLPath(urlPath string) (*models.Automation, error)
 	Transaction(txFunc func(tx *gorm.DB) error) (err error)
 }
 
@@ -110,4 +111,13 @@ func (r *GormUserRepository) MaxPosition() (int, error) {
 		return 0, err
 	}
 	return automation.Position, nil
+}
+
+func (r *GormUserRepository) GetByURLPath(urlPath string) (*models.Automation, error) {
+	var automation models.Automation
+	err := r.DB.First(&automation, "url_path = ?", urlPath).Error
+	if err != nil {
+		return nil, err
+	}
+	return &automation, nil
 }

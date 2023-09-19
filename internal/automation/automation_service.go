@@ -4,6 +4,8 @@ import (
 	"automation-hub-backend/internal/config"
 	"automation-hub-backend/internal/events"
 	"automation-hub-backend/internal/models"
+	"automation-hub-backend/internal/util"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -83,15 +85,20 @@ func (s *service) Create(automation *models.Automation) (*models.Automation, err
 		automation.Image = newFileName
 	}
 
-	if err := automation.Validate(); err != nil {
-		return nil, err
-	}
-
 	maxPosition, err := s.repo.MaxPosition()
 	if err != nil {
 		return nil, err
 	}
 	automation.Position = maxPosition + 1
+
+	err = s.ensureUniqueURLPath(automation)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := automation.Validate(); err != nil {
+		return nil, err
+	}
 
 	automationCreated, err := s.repo.Create(automation)
 	if err != nil {
@@ -133,6 +140,15 @@ func (s *service) Update(automation *models.Automation) (*models.Automation, err
 		automation.Image = ""
 	} else {
 		automation.Image = currentAutomation.Image
+	}
+
+	if currentAutomation.Name != automation.Name {
+		err = s.ensureUniqueURLPath(automation)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		automation.URLPath = currentAutomation.URLPath
 	}
 
 	if err := automation.Validate(); err != nil {
@@ -316,4 +332,29 @@ func contains(slice []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func (s *service) ensureUniqueURLPath(automation *models.Automation) error {
+	baseURLPath := util.GenerateURLPath(automation.Name)
+	uniqueURLPath := baseURLPath
+	counter := 0
+
+	for {
+		existingAutomation, err := s.repo.GetByURLPath(uniqueURLPath)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if existingAutomation == nil || existingAutomation.ID == automation.ID {
+			break
+		}
+
+		counter++
+		uniqueURLPath = fmt.Sprintf("%s-%d", baseURLPath, counter)
+	}
+
+	automation.URLPath = uniqueURLPath
+	return nil
 }

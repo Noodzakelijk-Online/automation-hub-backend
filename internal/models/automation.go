@@ -12,6 +12,7 @@ var JSON = jsoniter.ConfigCompatibleWithStandardLibrary
 type Automation struct {
 	ID          uuid.UUID             `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id,omitempty"`
 	Name        string                `gorm:"type:varchar(50);uniqueIndex:idx_name_position" json:"name,omitempty"`
+	URLPath     string                `gorm:"type:varchar(255);unique" json:"urlPath,omitempty"`
 	Image       string                `gorm:"type:varchar(255)" json:"image,omitempty"`
 	Host        string                `gorm:"type:varchar(50)" json:"host,omitempty"`
 	Port        int                   `gorm:"check:port >= 0 AND port <= 65535" json:"port,omitempty"`
@@ -27,6 +28,12 @@ func (a *Automation) Validate() error {
 	if len(a.Name) > 50 {
 		return fmt.Errorf("name is too long, maximum length is 50 characters")
 	}
+	if a.URLPath == "" {
+		return fmt.Errorf("urlPath is required")
+	}
+	if len(a.URLPath) > 255 {
+		return fmt.Errorf("urlPath is too long, maximum length is 255 characters")
+	}
 	if len(a.Image) > 255 {
 		return fmt.Errorf("image name is too long, maximum length is 255 characters")
 	}
@@ -38,6 +45,9 @@ func (a *Automation) Validate() error {
 	}
 	if a.Port <= 0 || a.Port > 65535 {
 		return fmt.Errorf("error: Port %d is not valid", a.Port)
+	}
+	if a.Position < 0 {
+		return fmt.Errorf("position cannot be negative")
 	}
 	return nil
 }
