@@ -19,7 +19,6 @@ func initializeRoutes(router *gin.Engine) error {
 		if err != nil {
 			return err
 		}
-		v1.GET("/images/:imageName", autoHandler.ImageHandler)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return nil
@@ -34,6 +33,7 @@ func initializeAutomationsRoutes(apiVersion *gin.RouterGroup, autoHandler *autom
 		automations.POST("/", autoHandler.Create)
 		automations.PATCH("/", autoHandler.Update)
 		automations.DELETE("/:id", autoHandler.DeleteByID)
+		automations.GET("/images/:imageName", autoHandler.ImageHandler)
 	}
 
 	return nil
