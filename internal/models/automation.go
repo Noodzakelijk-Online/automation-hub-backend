@@ -11,12 +11,12 @@ var JSON = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Automation struct {
 	ID          uuid.UUID             `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id,omitempty"`
-	Name        string                `gorm:"type:varchar(50);uniqueIndex:idx_name_position" json:"name,omitempty"`
+	Name        string                `gorm:"type:varchar(50);unique" json:"name,omitempty"`
 	URLPath     string                `gorm:"type:varchar(255);unique" json:"urlPath,omitempty"`
 	Image       string                `gorm:"type:varchar(255)" json:"image,omitempty"`
 	Host        string                `gorm:"type:varchar(50)" json:"host,omitempty"`
 	Port        int                   `gorm:"check:port >= 0 AND port <= 65535" json:"port,omitempty"`
-	Position    int                   `gorm:"type:int;uniqueIndex:idx_name_position;check:position >= 0" json:"position,omitempty,omitinput"`
+	Position    int                   `gorm:"type:int;unique;check:position >= 0" json:"position,omitempty,omitinput"`
 	ImageFile   *multipart.FileHeader `json:"imageFile,omitempty" gorm:"-"`
 	RemoveImage bool                  `json:"removeImage,omitempty" gorm:"-"`
 }
