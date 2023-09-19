@@ -55,7 +55,7 @@ func Init() {
 	}
 	imageSizeInMb := getEnvInt64(imageMaxSizeInMb, 5) * 1024 * 1024
 	imageExtensionsList := getStringListFromEnv(imageExtensions, ".jpg,.jpeg,.png")
-	kafkaBrokersList := getStringListFromEnv(kafkaBrokers, "kafka:9092")
+	kafkaBrokersList := getStringListFromEnv(kafkaBrokers, "kafka1:9092,kafka2:9093,kafka3:9094")
 	AppConfig = Configuration{
 		ConfigDir:       getEnvString(configDir, "/app/sites-enabled"),
 		BaseUrl:         getEnvString(baseUrl, "/api"),
