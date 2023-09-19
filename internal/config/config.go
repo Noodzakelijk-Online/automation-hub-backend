@@ -21,6 +21,8 @@ const (
 	imageMaxSizeInMb string = "IMAGE_MAX_SIZE_IN_MB"
 	imageExtensions  string = "IMAGE_EXTENSIONS"
 	imageSaveDir     string = "IMAGE_SAVE_DIR"
+	kafkaBrokers     string = "KAFKA_BROKERS"
+	kafkaTopic       string = "KAFKA_TOPIC"
 )
 
 type Configuration struct {
@@ -36,6 +38,8 @@ type Configuration struct {
 	ImageMaxSize    int64
 	ImageExtensions []string
 	ImageSaveDir    string
+	KafkaBrokers    []string
+	KafkaTopic      string
 }
 
 var AppConfig Configuration
@@ -50,7 +54,8 @@ func Init() {
 		panic(err)
 	}
 	imageSizeInMb := getEnvInt64(imageMaxSizeInMb, 5) * 1024 * 1024
-
+	imageExtensionsList := getStringListFromEnv(imageExtensions, ".jpg,.jpeg,.png")
+	kafkaBrokersList := getStringListFromEnv(kafkaBrokers, "kafka:9092")
 	AppConfig = Configuration{
 		ConfigDir:       getEnvString(configDir, "/app/sites-enabled"),
 		BaseUrl:         getEnvString(baseUrl, "/api"),
@@ -62,8 +67,10 @@ func Init() {
 		DbUser:          getEnvString(dbUser, "postgres"),
 		DbPassword:      getEnvString(dbPassword, "postgres"),
 		ImageMaxSize:    imageSizeInMb,
-		ImageExtensions: getImageExtensions(),
+		ImageExtensions: imageExtensionsList,
 		ImageSaveDir:    getEnvString(imageSaveDir, "images"),
+		KafkaBrokers:    kafkaBrokersList,
+		KafkaTopic:      getEnvString(kafkaTopic, "automation-topic"),
 	}
 	ensureImageDirExists()
 }
@@ -77,9 +84,9 @@ func ensureImageDirExists() {
 	}
 }
 
-func getImageExtensions() []string {
-	extStr := getEnvString(imageExtensions, ".jpg,.png,.jpeg")
-	return strings.Split(extStr, ",")
+func getStringListFromEnv(envVarName, defaultValue string) []string {
+	value := getEnvString(envVarName, defaultValue)
+	return strings.Split(value, ",")
 }
 
 func validatePort(port int) error {
