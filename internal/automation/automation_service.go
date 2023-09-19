@@ -234,7 +234,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 		log.Printf("Failed to open the file: %v", err)
 		return "", err
 	}
-	src.Close()
+	defer src.Close()
 	log.Println("After opening source file")
 
 	buffer := make([]byte, 512)
@@ -278,7 +278,7 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 		fmt.Printf("Failed to create file %s: %v", dst.Name(), err)
 		return "", err
 	}
-	dst.Close()
+	defer dst.Close()
 	fmt.Printf("Buffer content: %x\n", buffer[:100]) // Print first 100 bytes
 	log.Printf("File path: %s", fullPath)
 
