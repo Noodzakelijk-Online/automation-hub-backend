@@ -9,8 +9,10 @@ import (
 )
 
 func GenerateURLPath(name string) string {
-	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+	t := transform.Chain(norm.NFD)
 	name, _, _ = transform.String(t, name)
+
+	name = removeCombiningChars(name)
 
 	name = strings.ReplaceAll(name, " ", "-")
 
@@ -22,6 +24,13 @@ func GenerateURLPath(name string) string {
 	return name
 }
 
-func isMn(r rune) bool {
-	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+func removeCombiningChars(s string) string {
+	var result []rune
+	for _, r := range s {
+		if unicode.Is(unicode.Mn, r) { // Mn: non-spacing marks
+			continue
+		}
+		result = append(result, r)
+	}
+	return string(result)
 }
