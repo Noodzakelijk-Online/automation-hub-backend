@@ -101,17 +101,18 @@ func (s *service) Update(automation *models.Automation) (*models.Automation, err
 	automation.Position = currentAutomation.Position
 
 	if automation.ImageFile != nil {
-		newFileName, err := s.processImageFile(automation.ImageFile)
-		if err != nil {
-			return nil, err
+		newFileName, errIf := s.processImageFile(automation.ImageFile)
+		log.Printf("Image processed and saved as: %s", newFileName)
+		if errIf != nil {
+			return nil, errIf
 		}
-		if err := s.deleteImage(currentAutomation.Image); err != nil {
-			return nil, err
+		if ok := s.deleteImage(currentAutomation.Image); ok != nil {
+			return nil, ok
 		}
 		automation.Image = newFileName
 	} else if automation.RemoveImage {
-		if err := s.deleteImage(currentAutomation.Image); err != nil {
-			return nil, err
+		if noDeleted := s.deleteImage(currentAutomation.Image); noDeleted != nil {
+			return nil, noDeleted
 		}
 		automation.Image = ""
 	} else {
@@ -127,8 +128,8 @@ func (s *service) Update(automation *models.Automation) (*models.Automation, err
 		automation.URLPath = currentAutomation.URLPath
 	}
 
-	if err := automation.Validate(); err != nil {
-		return nil, err
+	if errValidate := automation.Validate(); errValidate != nil {
+		return nil, errValidate
 	}
 
 	automationUpdated, err := s.repo.Update(automation)
@@ -216,6 +217,7 @@ func (s *service) SwapOrder(id1 uuid.UUID, id2 uuid.UUID) error {
 }
 
 func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
+	log.Println("Starting processImageFile function")
 	if file.Size > config.AppConfig.ImageMaxSize {
 		return "", fmt.Errorf("image is too large (%d). Max size is %d Mb", file.Size, config.AppConfig.ImageMaxSize)
 	}
@@ -232,18 +234,17 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 		log.Printf("Failed to open the file: %v", err)
 		return "", err
 	}
-	defer func(src multipart.File) {
-		err := src.Close()
-		if err != nil {
-			fmt.Printf("Failed to close file: %v", err)
-		}
-	}(src)
+	src.Close()
+	log.Println("After opening source file")
 
 	buffer := make([]byte, 512)
 	_, err = src.Read(buffer)
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("After reading buffer")
+
 	fileType := http.DetectContentType(buffer)
 	if !strings.HasPrefix(fileType, "image/") {
 		return "", fmt.Errorf("file is not an image")
@@ -258,6 +259,8 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 
+	log.Println("After seeking to start of source file")
+
 	_, _, err = image.Decode(src)
 	if err != nil {
 		//return "", fmt.Errorf("corrupted image: %v", err)
@@ -269,18 +272,17 @@ func (s *service) processImageFile(file *multipart.FileHeader) (string, error) {
 	}
 
 	newFileName := uuid.New().String() + ext
-	dst, err := os.Create(config.AppConfig.ImageSaveDir + "/" + newFileName)
+	fullPath := config.AppConfig.ImageSaveDir + "/" + newFileName
+	dst, err := os.Create(fullPath)
 	if err != nil {
 		fmt.Printf("Failed to create file %s: %v", dst.Name(), err)
 		return "", err
 	}
-	defer func(dst *os.File) {
-		err := dst.Close()
-		if err != nil {
-			fmt.Printf("Failed to close file %s: %v", dst.Name(), err)
-		}
-	}(dst)
+	dst.Close()
 	fmt.Printf("Buffer content: %x\n", buffer[:100]) // Print first 100 bytes
+	log.Printf("File path: %s", fullPath)
+
+	log.Println("Before copying file")
 
 	n, err := io.Copy(dst, src)
 	if err != nil {
