@@ -73,7 +73,7 @@ func (r *GormUserRepository) Delete(id uuid.UUID) error {
 
 func (r *GormUserRepository) FindAll() ([]*models.Automation, error) {
 	var automations []*models.Automation
-	err := r.DB.Find(&automations).Error
+	err := r.DB.Order("position asc").Find(&automations).Error
 	if err != nil {
 		return nil, err
 	}
