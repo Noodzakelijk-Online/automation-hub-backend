@@ -19,6 +19,7 @@ type Automation struct {
 	Position    int                   `gorm:"type:int;unique;check:position >= 0" json:"position,omitempty,omitinput"`
 	ImageFile   *multipart.FileHeader `json:"imageFile,omitempty" gorm:"-"`
 	RemoveImage bool                  `json:"removeImage,omitempty" gorm:"-"`
+	OldUrlPath  string                `json:"oldUrlPath,omitempty" gorm:"-"`
 }
 
 func (a *Automation) Validate() error {

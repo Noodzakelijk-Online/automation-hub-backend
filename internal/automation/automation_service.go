@@ -118,13 +118,15 @@ func (s *service) Update(automation *models.Automation) (*models.Automation, err
 	} else {
 		automation.Image = currentAutomation.Image
 	}
-
+	var oldUrlPath string
 	if currentAutomation.Name != automation.Name {
+		oldUrlPath = currentAutomation.URLPath
 		err = s.ensureUniqueURLPath(automation)
 		if err != nil {
 			return nil, err
 		}
 	} else {
+		oldUrlPath = currentAutomation.URLPath
 		automation.URLPath = currentAutomation.URLPath
 	}
 
@@ -133,6 +135,7 @@ func (s *service) Update(automation *models.Automation) (*models.Automation, err
 	}
 
 	automationUpdated, err := s.repo.Update(automation)
+	automationUpdated.OldUrlPath = oldUrlPath
 
 	event := &events.AutomationEvent{
 		Type:       events.UpdateEvent,
